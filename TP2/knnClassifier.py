@@ -2,6 +2,7 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 from scipy import stats
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
+
 import tp_knn_source as tpknn
 
 class KNNClassifier(BaseEstimator, ClassifierMixin):
