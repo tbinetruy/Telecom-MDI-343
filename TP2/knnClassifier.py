@@ -79,7 +79,7 @@ def test_algo(X, y, k):
     scikit_predictions = []
     X_train, y_train, X_test, y_test = split_data(X1, y1)
     scikit_knn = KNeighborsClassifier(n_neighbors=k)
-    scikit_knn.fit(X_train, [y_train.item(i) for i in range(y_train.shape[1])])
+    scikit_knn.fit(X_train, np.array(y_train)[0])
     my_knn = KNNClassifier(k).fit(X1, y1)
     for i in range(y_test.shape[1]):
         my_predictions.append(my_knn.predict(X[i]))
@@ -89,3 +89,11 @@ def test_algo(X, y, k):
 my_preds, scikit_preds = test_algo(X1, y1, 3)
 print(my_preds)
 print(scikit_preds)
+
+
+from typing import List, Callable
+
+def create_get_weight(h: int) -> Callable[[List[float]], List[float]]:
+    def get_weights(distances: List[float]) -> List[float]:
+        return [np.exp(-d^2/h) for d in distances]
+    return get_weights
