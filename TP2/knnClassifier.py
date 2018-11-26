@@ -97,3 +97,50 @@ def create_get_weight(h: int) -> Callable[[List[float]], List[float]]:
     def get_weights(distances: List[float]) -> List[float]:
         return [np.exp(-d^2/h) for d in distances]
     return get_weights
+
+
+
+
+from numpy.linalg import inv
+
+class LDAClassifier(BaseEstimator, ClassifierMixin):
+    def fit(self, X, y):
+        m = np.sum(y[y==1])
+        n = y.shape[0]
+        pi_plus = m/n
+        mu_plus = 1/m * np.sum(X[np.where(y==1),:][0], axis=0).T
+        mu_minus = 1/(n-m) * np.sum(X[np.where(y==-1),:][0], axis=0).T
+
+
+        sig_plus = 1/(m-1) * (X[np.where(y==1),:][0]-mu_plus.T).T@(X[np.where(y==1),:][0]-mu_plus.T)
+        sig_minus = 1/(n-m-1) * (X[np.where(y==-1),:][0]-mu_minus.T).T@(X[np.where(y==-1),:][0]-mu_minus.T)
+
+        sig = 1/(n-2) * ((n-1)*sig_plus + (n-m-1)*sig_minus)
+        sig_inv = inv(sig)
+
+        t1 = 1/2*mu_plus.T@sig_inv@mu_plus
+        t2 = 1/2*mu_minus.T@sig_inv@mu_minus
+        self.test = t1 - t2 + np.log(1-pi_plus) - np.log(pi_plus)
+        self.sig_inv = sig_inv
+        self.mu_plus = mu_plus
+        self.mu_minus = mu_minus
+
+        return self
+
+    def predict(self, X):
+        y_pred = X@self.sig_inv@(self.mu_plus-self.mu_minus)
+        print(y_pred)
+        y_pred[y_pred > 0] = 1
+        y_pred[y_pred <= 0] = -1
+
+        return y_pred
+
+    def score(self, y_pred, y):
+        print(y_pred.shape)
+        return y_pred[y_pred!=y].shape[1]
+
+X = X1
+y = y1
+my_lda = LDAClassifier().fit(X, y)
+y_pred = my_lda.predict(X)
+print(my_lda.score(y_pred, y))
